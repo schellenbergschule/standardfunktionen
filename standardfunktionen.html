@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Standardfunktionen</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-page:    #f0eff8;
+    --bg-card:    #ffffff;
+    --bg-meta:    #f5f4fb;
+    --border:     rgba(80,89,213,0.13);
+    --text-main:  #1a1a2e;
+    --text-muted: #6b6b8a;
+    --accent:     #5059D5;
+    --accent-light: #ededfc;
+    --font-sans:  system-ui, -apple-system, sans-serif;
+    --font-mono:  'Fira Mono', 'Consolas', monospace;
+    --radius-card: 16px;
+    --radius-inner: 8px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg-page:    #13131f;
+      --bg-card:    #1e1e30;
+      --bg-meta:    #28283d;
+      --border:     rgba(140,148,255,0.15);
+      --text-main:  #e8e8f5;
+      --text-muted: #9090b8;
+      --accent:     #7b83ff;
+      --accent-light: #1e1e40;
+    }
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg-page);
+    color: var(--text-main);
+    padding: 1.25rem;
+    min-height: 100vh;
+  }
+
+  h1 {
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--text-main);
+    margin-bottom: 1rem;
+    letter-spacing: -0.02em;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  @media (max-width: 1100px) { .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (max-width: 800px)  { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 500px)  { .grid { grid-template-columns: 1fr; } }
+
+  /* Intro card */
+  .intro {
+    background: linear-gradient(135deg, #5059D5 0%, #7B61FF 100%);
+    border-radius: var(--radius-card);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    color: #fff;
+  }
+  .intro h2 { font-size: 17px; font-weight: 500; }
+  .intro p  { font-size: 12.5px; color: rgba(255,255,255,.85); line-height: 1.65; }
+  .intro .param {
+    display: inline-block;
+    background: rgba(255,255,255,.2);
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-size: 12px;
+    font-family: var(--font-mono);
+    margin: 2px 2px 0 0;
+  }
+  .intro .hint { font-size: 11px; opacity: .7; }
+
+  /* Function card */
+  .card {
+    background: var(--bg-card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-card);
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .fn-title {
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--text-muted);
+    letter-spacing: .03em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+  }
+
+  canvas {
+    width: 100%;
+    height: 155px;
+    display: block;
+    border-radius: var(--radius-inner);
+    background: var(--bg-meta);
+  }
+
+  .fn-eq {
+    font-size: 12.5px;
+    font-weight: 500;
+    font-family: var(--font-mono);
+    color: var(--text-main);
+    background: var(--bg-meta);
+    border-radius: var(--radius-inner);
+    padding: 6px 9px;
+    min-height: 16px;
+    word-break: break-all;
+  }
+
+  .fn-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+  }
+  .meta-box {
+    background: var(--bg-meta);
+    border-radius: var(--radius-inner);
+    padding: 6px 9px;
+  }
+  .meta-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: 2px;
+  }
+  .meta-val {
+    font-size: 11.5px;
+    color: var(--text-main);
+    line-height: 1.4;
+    font-family: var(--font-mono);
+  }
+
+  .asy-row {
+    background: var(--bg-meta);
+    border-radius: var(--radius-inner);
+    padding: 6px 9px;
+    display: flex;
+    gap: 5px;
+    align-items: baseline;
+    flex-wrap: wrap;
+  }
+  .asy-row .meta-label { margin: 0; }
+  .asy-row .meta-val   { font-size: 11.5px; }
+
+  /* Sliders */
+  .sliders { display: flex; flex-direction: column; gap: 5px; margin-top: 2px; }
+  .slider-row {
+    display: grid;
+    grid-template-columns: 16px 1fr 34px;
+    align-items: center;
+    gap: 6px;
+  }
+  .slider-row label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--accent);
+    text-align: center;
+    font-family: var(--font-mono);
+  }
+  .slider-row input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border);
+    outline: none;
+    cursor: pointer;
+  }
+  .slider-row input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    border: 2px solid var(--bg-card);
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+  .slider-row input[type="range"]::-moz-range-thumb {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    border: 2px solid var(--bg-card);
+  }
+  .slider-row span {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--text-main);
+    text-align: right;
+  }
+</style>
+</head>
+<body>
+
+<div class="grid" id="grid"></div>
+
+<script>
+const ACCENT_LIGHT = "#5059D5";
+const PAD_L = 30, PAD_R = 12, PAD_T = 10, PAD_B = 22;
+
+const fns = [
+  {
+    id: "linear", title: "Lineare Funktion", trig: false,
+    params: { m: { min: -3, max: 3, step: 0.1, val: 1 }, q: { min: -5, max: 5, step: 0.1, val: 0 } },
+    f: (x, p) => p.m * x + p.q,
+    eq:    p => `f(x) = ${F(p.m)}·x + ${F(p.q)}`,
+    def:   p => "ℝ",
+    range: p => "ℝ",
+    asy:   p => "—",
+    xR: [-7, 7], yR: [-6, 6]
+  },
+  {
+    id: "pow_ep", title: "Potenz (ger., pos.)", trig: false,
+    params: { a: { min: -3, max: 3, step: 0.1, val: 1 }, n: { min: 2, max: 8, step: 2, val: 2 }, d: { min: -4, max: 4, step: 0.1, val: 0 }, e: { min: -4, max: 4, step: 0.1, val: 0 } },
+    f: (x, p) => p.a * Math.pow(x + p.d, p.n) + p.e,
+    eq:    p => `f(x) = ${F(p.a)}·(x+${F(p.d)})^${p.n} + ${F(p.e)}`,
+    def:   p => "ℝ",
+    range: p => p.a > 0 ? `[${F(p.e)}, ∞)` : `(-∞, ${F(p.e)}]`,
+    asy:   p => "—",
+    xR: [-6, 6], yR: [-6, 8]
+  },
+  {
+    id: "pow_op", title: "Potenz (unger., pos.)", trig: false,
+    params: { a: { min: -3, max: 3, step: 0.1, val: 1 }, n: { min: 1, max: 7, step: 2, val: 3 }, d: { min: -4, max: 4, step: 0.1, val: 0 }, e: { min: -4, max: 4, step: 0.1, val: 0 } },
+    f: (x, p) => p.a * Math.pow(x + p.d, p.n) + p.e,
+    eq:    p => `f(x) = ${F(p.a)}·(x+${F(p.d)})^${p.n} + ${F(p.e)}`,
+    def:   p => "ℝ",
+    range: p => "ℝ",
+    asy:   p => "—",
+    xR: [-6, 6], yR: [-8, 8]
+  },
+  {
+    id: "pow_en", title: "Potenz (ger., neg.)", trig: false,
+    params: { a: { min: -3, max: 3, step: 0.1, val: 1 }, n: { min: 2, max: 8, step: 2, val: 2 }, d: { min: -4, max: 4, step: 0.1, val: 0 }, e: { min: -4, max: 4, step: 0.1, val: 0 } },
+    f: (x, p) => { let v = x + p.d; return v === 0 ? NaN : p.a * Math.pow(v, -p.n) + p.e; },
+    eq:    p => `f(x) = ${F(p.a)}·(x+${F(p.d)})^-${p.n} + ${F(p.e)}`,
+    def:   p => `ℝ \\ {${F(-p.d)}}`,
+    range: p => p.a > 0 ? `(${F(p.e)}, ∞) \\ {${F(p.e)}}` : `(-∞, ${F(p.e)}) \\ {${F(p.e)}}`,
+    asy:   p => `x = ${F(-p.d)},  y = ${F(p.e)}`,
+    xR: [-6, 6], yR: [-6, 6]
+  },
+  {
+    id: "pow_on", title: "Potenz (unger., neg.)", trig: false,
+    params: { a: { min: -3, max: 3, step: 0.1, val: 1 }, n: { min: 1, max: 7, step: 2, val: 1 }, d: { min: -4, max: 4, step: 0.1, val: 0 }, e: { min: -4, max: 4, step: 0.1, val: 0 } },
+    f: (x, p) => { let v = x + p.d; return v === 0 ? NaN : p.a * Math.pow(v, -p.n) + p.e; },
+    eq:    p => `f(x) = ${F(p.a)}·(x+${F(p.d)})^-${p.n} + ${F(p.e)}`,
+    def:   p => `ℝ \\ {${F(-p.d)}}`,
+    range: p => `ℝ \\ {${F(p.e)}}`,
+    asy:   p => `x = ${F(-p.d)},  y = ${F(p.e)}`,
+    xR: [-6, 6], yR: [-6, 6]
+  },
+  {
+    id: "exp", title: "Exponentialfunktion", trig: false,
+    params: { a: { min: -3, max: 3, step: 0.1, val: 1 }, b: { min: 0.1, max: 5, step: 0.1, val: 2.72 }, e: { min: -4, max: 4, step: 0.1, val: 0 } },
+    f: (x, p) => p.a * Math.pow(Math.abs(p.b), x) + p.e,
+    eq:    p => `f(x) = ${F(p.a)}·${F(p.b)}^x + ${F(p.e)}`,
+    def:   p => "ℝ",
+    range: p => p.a > 0 ? `(${F(p.e)}, ∞)` : `(-∞, ${F(p.e)})`,
+    asy:   p => `y = ${F(p.e)}`,
+    xR: [-5, 5], yR: [-4, 8]
+  },
+  {
+    id: "log", title: "Logarithmusfunktion", trig: false,
+    params: { a: { min: -3, max: 3, step: 0.1, val: 1 }, b: { min: 0.2, max: 5, step: 0.1, val: 2.72 }, d: { min: -4, max: 4, step: 0.1, val: 0 }, e: { min: -4, max: 4, step: 0.1, val: 0 } },
+    f: (x, p) => { let v = x + p.d; return v <= 0 ? NaN : p.a * (Math.log(v) / Math.log(Math.abs(p.b))) + p.e; },
+    eq:    p => `f(x) = ${F(p.a)}·log_${F(p.b)}(x+${F(p.d)}) + ${F(p.e)}`,
+    def:   p => `(${F(-p.d)}, ∞)`,
+    range: p => "ℝ",
+    asy:   p => `x = ${F(-p.d)}`,
+    xR: [-2, 10], yR: [-5, 5]
+  },
+  {
+    id: "sqrt", title: "Wurzelfunktion", trig: false,
+    params: { a: { min: -3, max: 3, step: 0.1, val: 1 }, d: { min: -4, max: 4, step: 0.1, val: 0 }, e: { min: -4, max: 4, step: 0.1, val: 0 } },
+    f: (x, p) => { let v = x + p.d; return v < 0 ? NaN : p.a * Math.sqrt(v) + p.e; },
+    eq:    p => `f(x) = ${F(p.a)}·√(x+${F(p.d)}) + ${F(p.e)}`,
+    def:   p => `[${F(-p.d)}, ∞)`,
+    range: p => p.a > 0 ? `[${F(p.e)}, ∞)` : `(-∞, ${F(p.e)}]`,
+    asy:   p => "—",
+    xR: [-2, 12], yR: [-4, 6]
+  },
+  {
+    id: "sin", title: "Sinusfunktion", trig: true,
+    params: { a: { min: -3, max: 3, step: 0.1, val: 1 }, b: { min: 0.2, max: 4, step: 0.1, val: 1 }, d: { min: -4, max: 4, step: 0.25, val: 0 }, e: { min: -3, max: 3, step: 0.1, val: 0 } },
+    f: (x, p) => p.a * Math.sin(p.b * (x + p.d)) + p.e,
+    eq:    p => `f(x) = ${F(p.a)}·sin(${F(p.b)}·(x+${F(p.d)})) + ${F(p.e)}`,
+    def:   p => "ℝ",
+    range: p => `[${F(p.e - Math.abs(p.a))}, ${F(p.e + Math.abs(p.a))}]`,
+    asy:   p => "—",
+    xR: [-7, 7], yR: [-4, 4]
+  },
+  {
+    id: "cos", title: "Cosinusfunktion", trig: true,
+    params: { a: { min: -3, max: 3, step: 0.1, val: 1 }, b: { min: 0.2, max: 4, step: 0.1, val: 1 }, d: { min: -4, max: 4, step: 0.25, val: 0 }, e: { min: -3, max: 3, step: 0.1, val: 0 } },
+    f: (x, p) => p.a * Math.cos(p.b * (x + p.d)) + p.e,
+    eq:    p => `f(x) = ${F(p.a)}·cos(${F(p.b)}·(x+${F(p.d)})) + ${F(p.e)}`,
+    def:   p => "ℝ",
+    range: p => `[${F(p.e - Math.abs(p.a))}, ${F(p.e + Math.abs(p.a))}]`,
+    asy:   p => "—",
+    xR: [-7, 7], yR: [-4, 4]
+  },
+  {
+    id: "tan", title: "Tangensfunktion", trig: true,
+    params: { a: { min: -3, max: 3, step: 0.1, val: 1 }, b: { min: 0.2, max: 4, step: 0.1, val: 1 }, d: { min: -4, max: 4, step: 0.25, val: 0 }, e: { min: -3, max: 3, step: 0.1, val: 0 } },
+    f: (x, p) => { let v = Math.tan(p.b * (x + p.d)); return Math.abs(v) > 80 ? NaN : p.a * v + p.e; },
+    eq:    p => `f(x) = ${F(p.a)}·tan(${F(p.b)}·(x+${F(p.d)})) + ${F(p.e)}`,
+    def:   p => `ℝ \\ {π/(2b) + kπ/b − d}`,
+    range: p => "ℝ",
+    asy:   p => "x = π/(2b) + kπ/b − d,  k ∈ ℤ",
+    xR: [-7, 7], yR: [-5, 5]
+  },
+];
+
+function F(v) { return parseFloat(v.toFixed(2)); }
+
+function getVals(fn, card) {
+  const p = {};
+  card.querySelectorAll("input[data-p]").forEach(i => p[i.dataset.p] = parseFloat(i.value));
+  return p;
+}
+
+function getColors() {
+  const dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  return {
+    bg:     dark ? "#28283d" : "#f0eff8",
+    grid:   dark ? "rgba(200,200,255,0.08)" : "rgba(80,89,213,0.10)",
+    axis:   dark ? "#9090b8" : "#6b6b8a",
+    accent: dark ? "#7b83ff" : "#5059D5",
+    card:   dark ? "#1e1e30" : "#ffffff",
+  };
+}
+
+function drawGraph(fn, canvas, p) {
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.clientWidth, H = canvas.clientHeight;
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  const ctx = canvas.getContext("2d");
+  ctx.scale(dpr, dpr);
+
+  const [xMin, xMax] = fn.xR, [yMin, yMax] = fn.yR;
+  const pl = PAD_L, pr = PAD_R, pt = PAD_T, pb = PAD_B;
+  const cw = W - pl - pr, ch = H - pt - pb;
+
+  function tx(x) { return pl + ((x - xMin) / (xMax - xMin)) * cw; }
+  function ty(y) { return pt + ((yMax - y) / (yMax - yMin)) * ch; }
+
+  const col = getColors();
+
+  ctx.fillStyle = col.bg;
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.strokeStyle = col.grid; ctx.lineWidth = 0.5;
+  if (fn.trig) {
+    const step = Math.PI / 2;
+    for (let k = Math.ceil(xMin / step); k <= Math.floor(xMax / step); k++) {
+      ctx.beginPath(); ctx.moveTo(tx(k * step), pt); ctx.lineTo(tx(k * step), pt + ch); ctx.stroke();
+    }
+  } else {
+    for (let gx = Math.ceil(xMin); gx <= xMax; gx++) {
+      ctx.beginPath(); ctx.moveTo(tx(gx), pt); ctx.lineTo(tx(gx), pt + ch); ctx.stroke();
+    }
+  }
+  for (let gy = Math.ceil(yMin); gy <= yMax; gy++) {
+    ctx.beginPath(); ctx.moveTo(pl, ty(gy)); ctx.lineTo(pl + cw, ty(gy)); ctx.stroke();
+  }
+
+  ctx.strokeStyle = col.axis; ctx.lineWidth = 1;
+  const y0 = ty(0);
+  if (y0 >= pt && y0 <= pt + ch) { ctx.beginPath(); ctx.moveTo(pl, y0); ctx.lineTo(pl + cw, y0); ctx.stroke(); }
+  const x0 = tx(0);
+  if (x0 >= pl && x0 <= pl + cw) { ctx.beginPath(); ctx.moveTo(x0, pt); ctx.lineTo(x0, pt + ch); ctx.stroke(); }
+
+  ctx.fillStyle = col.axis;
+  ctx.font = `9px ${getComputedStyle(document.body).fontFamily || 'sans-serif'}`;
+  ctx.textAlign = "center";
+
+  if (fn.trig) {
+    const step = Math.PI / 2;
+    const lblMap = { 0:"0", 1:"π/2", 2:"π", 3:"3π/2", 4:"2π", "-1":"-π/2", "-2":"-π", "-3":"-3π/2", "-4":"-2π" };
+    for (let k = Math.ceil(xMin / step); k <= Math.floor(xMax / step); k++) {
+      if (k === 0) continue;
+      ctx.fillText(lblMap[k] || `${k}π/2`, tx(k * step), pt + ch + 14);
+    }
+  } else {
+    for (let gx = Math.ceil(xMin); gx <= xMax; gx++) {
+      if (gx === 0) continue;
+      ctx.fillText(gx, tx(gx), pt + ch + 13);
+    }
+  }
+  ctx.textAlign = "right";
+  for (let gy = Math.ceil(yMin); gy <= yMax; gy++) {
+    if (gy === 0) continue;
+    ctx.fillText(gy, pl - 4, ty(gy) + 3.5);
+  }
+  ctx.textAlign = "center"; ctx.fillText("0", tx(0) - 6, ty(0) + 11);
+
+  ctx.strokeStyle = col.accent; ctx.lineWidth = 2.2; ctx.lineJoin = "round";
+  ctx.beginPath();
+  let started = false;
+  const steps = 600;
+  for (let i = 0; i <= steps; i++) {
+    const x = xMin + i / steps * (xMax - xMin);
+    const y = fn.f(x, p);
+    if (!isFinite(y) || isNaN(y) || y < yMin - 30 || y > yMax + 30) { started = false; continue; }
+    const px = tx(x), py = ty(y);
+    if (!started) { ctx.moveTo(px, py); started = true; } else ctx.lineTo(px, py);
+  }
+  ctx.stroke();
+}
+
+function updateCard(fn, card) {
+  const p = getVals(fn, card);
+  drawGraph(fn, card.querySelector("canvas"), p);
+  card.querySelector(".fn-eq").textContent = fn.eq(p);
+  card.querySelector(".def-val").textContent = fn.def(p);
+  card.querySelector(".range-val").textContent = fn.range(p);
+  card.querySelector(".asy-val").textContent = fn.asy(p);
+}
+
+const grid = document.getElementById("grid");
+
+const intro = document.createElement("div");
+intro.className = "intro";
+intro.innerHTML = `
+  <h2>Standardfunktionen</h2>
+  <p>Schieberegler bewegen &rarr; Graph, Gleichung und Bereiche aktualisieren sich live.</p>
+  <p>
+    <span class="param">a</span> Streckung / Stauchung<br>
+    <span class="param">b</span> Basis / Frequenz<br>
+    <span class="param">d</span> Verschiebung horizontal<br>
+    <span class="param">e</span> Verschiebung vertikal
+  </p>
+  <p class="hint">Trigonometrische Achsen in &pi;/2-Schritten</p>`;
+grid.appendChild(intro);
+
+fns.forEach(fn => {
+  const card = document.createElement("div");
+  card.className = "card";
+  let sHtml = "";
+  for (const k in fn.params) {
+    const pr = fn.params[k];
+    sHtml += `<div class="slider-row">
+      <label>${k}</label>
+      <input type="range" data-p="${k}" min="${pr.min}" max="${pr.max}" step="${pr.step}" value="${pr.val}">
+      <span id="${fn.id}-${k}-v">${F(pr.val)}</span>
+    </div>`;
+  }
+  card.innerHTML = `
+    <div class="fn-title"><span class="dot"></span>${fn.title}</div>
+    <canvas></canvas>
+    <div class="fn-eq"></div>
+    <div class="fn-meta">
+      <div class="meta-box"><div class="meta-label">Definitionsbereich</div><div class="meta-val def-val"></div></div>
+      <div class="meta-box"><div class="meta-label">Wertebereich</div><div class="meta-val range-val"></div></div>
+    </div>
+    <div class="asy-row"><span class="meta-label">Asymptoten:&nbsp;</span><span class="meta-val asy-val"></span></div>
+    <div class="sliders">${sHtml}</div>`;
+  grid.appendChild(card);
+
+  card.querySelectorAll("input[type=range]").forEach(inp => {
+    inp.addEventListener("input", () => {
+      document.getElementById(`${fn.id}-${inp.dataset.p}-v`).textContent = F(parseFloat(inp.value));
+      updateCard(fn, card);
+    });
+  });
+  updateCard(fn, card);
+});
+
+window.addEventListener("resize", () => {
+  document.querySelectorAll(".card").forEach((card, i) => updateCard(fns[i], card));
+});
+
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+  document.querySelectorAll(".card").forEach((card, i) => updateCard(fns[i], card));
+});
+</script>
+</body>
+</html>
